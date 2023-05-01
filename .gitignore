@@ -140,7 +140,12 @@ _media/
 .env.prod.db
 
 # my def.
+analysys/
+config/
+db/
 log/
 ref/
-config/
-conf/
+stocklab/
+tests/
+
+

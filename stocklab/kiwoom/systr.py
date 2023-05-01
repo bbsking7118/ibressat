@@ -874,7 +874,7 @@ class sysTrading(QAxWidget):
     def setupSystemTrading(self):
         try:
             logger.info("setupSystemTrading 시작")
-            if 1 :
+            if 0 :
                 #  self.testFirebaseDB()
                 logger.info("setupSystemTrading 끝")
                 exit()  
