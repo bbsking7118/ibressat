@@ -1,16 +1,18 @@
 import sys, os
-
-from PyQt5.QtWidgets import *
-from PyQt5 import uic
-from PyQt5.QAxContainer import *
-
+import configparser
 import logging
 import logging.handlers
 from datetime import datetime
 
+from PyQt5.QtWidgets import *
+from PyQt5 import uic
+from PyQt5.QAxContainer import *
+import pandas as pd
+
 # import stocklab.kiwoom.systr as systr
 from db.db_handler import Sqlite3DBHandler
-import userFunc.bsFunc as bsF
+from userFunc.crawler import Crawler
+from userFunc.bsFunc import test_function
 
 sys.path.append(("D:\work_east\c_study\project\python\PyGUI"))
 form_class = uic.loadUiType("prj1.ui")[0]  # ui 파일을 로드하여 form_class 생성
@@ -24,11 +26,13 @@ class MyWindow(QMainWindow, form_class):  # MyWindow 클래스 QMainWindow, form
         logger = logging.getLogger('upperLimitPriceTradingLogger')  # 로그 인스턴스를 만든다
         self.set_logger()  # 로그 인스턴스 환경 설정을 셋팅함
 
+        config = configparser.ConfigParser()
+        config.read('conf/config.ini')
+        self.dbfile = config['SYSTEM']['dbfile']
+        logger.debug("dbfile : ${self.dbfile}")
+
         # GUI 세팅 ################################################################
         self.setupUi(self)
-        self.btnStart.setDisabled(True)  # 거래시작 버튼을 비활성화 상태로 변경
-        self.btnStop.setDisabled(True)  # 거래중지 버튼을 비활성화 상태로 변경
-        self.btnReStart.setDisabled(True)  # 재시작 버튼을 비활성화 상태로 변경
         self.lePrice.setDisabled(True)  # 투입금 입력란을 비활성화 상태로 변경
         self.cbAcctNo.setDisabled(True)  # 계좌번호 선택란을 비활성화 상태로 변경
         self.leD2Price.setDisabled(True)  # D2예수금 입력란을 비활성화 상태로 변경
@@ -38,13 +42,17 @@ class MyWindow(QMainWindow, form_class):  # MyWindow 클래스 QMainWindow, form
         self.leProfitsPc.setDisabled(True)  # 수익률 입력란을 비활성화 상태로 변경
         self.pteBuyLog.setDisabled(True)  # 매도 종목 노출란을 비활성화 상태로 변경
         self.pteSellLog.setDisabled(True)  # 매수 종목 노출란을 비활성화 상태로 변경
-        self.pteLog.setDisabled(True)  # 전체 내역 노출란을 비활성화 상태로 변경
-        self.btnLogin.clicked.connect(
-            self.btn_login)  # ui 파일을 생성할때 작성한 로그인 버튼의 objectName 으로 클릭 이벤트가 발생할 경우 btn_login 함수를 호출
-        self.btnStop.clicked.connect(self.btn_stop)
-        self.btnStart.clicked.connect(
-            self.btn_start)  # ui 파일을 생성할때 작성한 거래시작 버튼의 objectName 으로 클릭 이벤트가 발생할 경우 btn_start 함수를 호출
-        self.btnSysTrading.clicked.connect(self.btn_SysTrading)
+
+
+        self.pteLog.setDisabled(False)  # 전체 내역 노출란을 비활성화 상태로 변경
+        # 이벤트함수...
+        self.btnTotal.clicked.connect(self.btnTotalClicked)
+        self.btnApt.clicked.connect(self.btnAptClicked)
+        self.btnOfficetel.clicked.connect(self.btnOfficetelClicked)
+        self.btnSangaEtc.clicked.connect(self.btnSangaEtcClicked)
+        self.btnProcessAll.clicked.connect(self.btnProcessAllClicked)
+
+        self.btnTest.clicked.connect(self.btnTestClicked)
 
         # 전역변수 세팅 ################################################################
 
@@ -80,36 +88,84 @@ class MyWindow(QMainWindow, form_class):  # MyWindow 클래스 QMainWindow, form
     # 함수 파트 : GUI ##########################################################################
 
     # 함수 파트 : 이벤트 ##########################################################################
-    def btn_login(self):  # Login 버튼 클릭 시 실행되는 함수
-        logger.debug("Login 버튼 클릭")  # debug 레벨 로그를 남김
-        # self.event_connect(0)
-        #
-        # # self.kiwoom.OnReceiveRealCondition.connect(
-        # #     self.receive_real_condition)  # 키움 사용자 조건검색식 실시간 조회 반환되는 값이 있을 경우 receive_real_condition 함수 호출
-        # self.kiwoom.OnReceiveConditionVer.connect(
-        #     self.receive_condition_var)  # 키움 사용자 조건검색식 수신 관련 이벤트가 발생할 경우 receive_condition_var 함수 호출
-        # self.kiwoom.OnReceiveTrCondition.connect(
-        #     self.receive_tr_condition)  # 키움 사용자 조건검색식 초기 조회 시 반환되는 값이 있을 경우 receive_tr_condition 함수 호출
+    def btnTestClicked(self):
+        logger.debug("btnTestClicked Start ...")  # debug 레벨 로그를 남김
+        test_function(self,logger)
 
-    def btn_stop(self):  # Login 버튼 클릭 시 실행되는 함수
-        logger.debug("거래중지 버튼 클릭")  # debug 레벨 로그를 남김
-        # conditionName = self.cbCdtNm.currentText().strip()
-        # index, name = conditionName.split('^')
-        # ret = self.kiwoom.dynamicCall("SendConditionStop(QString, QString, int)", "100", name, index)
-        #logger.debug(ret)
-
-    def btn_start(self):  # 거래시작 버튼 클릭 시 실행되는 함수
-        logger.debug("거래시작 버튼 클릭")  # debug 레벨 로그를 남김
+    def btnTotalClicked(self):
+        logger.debug("btnTotalClicked Start ...")  # debug 레벨 로그를 남김
         # tempPrice = self.lePrice.text().strip().replace(',', '')  # 입력된 종목당 투입금을 가져옴
         # conditionName = self.cbCdtNm.currentText().strip()
         # index, name = conditionName.split('^')
         # QMessageBox.about(self, "message", "계좌번호를 선택해주세요.")  # 계좌번호가 없다면 안내 얼럿 노출
+        # df = Crawler(self, logger).job_start(1)
+        # df.to_excel(self.dbfile + "apt" + datetime.today().strftime("%Y%m%d") + ".xlsx")
+        self.pteLog.clear()
+        mdf = pd.DataFrame()
+        isUpdated = False
+        file = self.dbfile + "_apt_" + datetime.today().strftime("%Y%m%d") + ".xlsx"
+        if os.path.exists(file):
+            logger.debug("file(apt) exist ...")
+            df = pd.read_excel(file)
+            mdf = pd.concat([mdf, df], ignore_index=True)
+            isUpdated = True
+            # df.to_excel(self.dbfile + "_all_" + datetime.today().strftime("%Y%m%d") + ".xlsx", index = True)
+        file = self.dbfile + "_officetel_" + datetime.today().strftime("%Y%m%d") + ".xlsx"
+        if os.path.exists(file):
+            logger.debug("file(officetel) exist ...")
+            df = pd.read_excel(file)
+            # print(df)
+            mdf = pd.concat([mdf, df], ignore_index=True)
+            # print(mdf)
 
+            isUpdated = True
+            # df.to_excel(self.dbfile + "_all_" + datetime.today().strftime("%Y%m%d") + ".xlsx", index=False)
+        file = self.dbfile + "_sangaetc_" + datetime.today().strftime("%Y%m%d") + ".xlsx"
+        if os.path.exists(file):
+            logger.debug("file(sangaetc) exist ...")
+            df = pd.read_excel(file)
+            mdf = pd.concat([mdf, df], ignore_index=True)
+            isUpdated = True
 
-    def btn_SysTrading(self):
-        logger.debug("시스템트레이딩 버튼 클릭")
-        # self.kiwoom = Kiwoom.Kiwoom()
-        # self.kiwoom = systr.sysTrading()
+        if isUpdated == True:
+            mdf.to_excel(self.dbfile + "_all_" + datetime.today().strftime("%Y%m%d") + ".xlsx", index=False)
+
+    def btnAptClicked(self):
+        logger.debug("btnAptClicked Start ...")  # debug 레벨 로그를 남김
+        # tempPrice = self.lePrice.text().strip().replace(',', '')  # 입력된 종목당 투입금을 가져옴
+        # conditionName = self.cbCdtNm.currentText().strip()
+        # index, name = conditionName.split('^')
+        # QMessageBox.about(self, "message", "계좌번호를 선택해주세요.")  # 계좌번호가 없다면 안내 얼럿 노출
+        self.pteLog.clear()
+        df = Crawler(self,logger).job_start(1)
+        df.to_excel(self.dbfile+"_apt_"+datetime.today().strftime("%Y%m%d")+".xlsx")
+
+    def btnOfficetelClicked(self):
+        logger.debug("btnOffecetelClicked Start ...")  # debug 레벨 로그를 남김
+        self.pteLog.clear()
+        df = Crawler(self,logger).job_start(2)
+        df.to_excel(self.dbfile+"_officetel_"+datetime.today().strftime("%Y%m%d")+".xlsx")
+
+    def btnSangaEtcClicked(self):
+        logger.debug("btnSangaEtcClicked Start ...")  # debug 레벨 로그를 남김
+        self.pteLog.clear()
+        df = Crawler(self, logger).job_start(3)
+        df.to_excel(self.dbfile + "_sangaetc_" + datetime.today().strftime("%Y%m%d") + ".xlsx")
+
+    def btnProcessAllClicked(self):
+        logger.debug("btnProcessAllClicked Start ...")
+        self.pteLog.clear()
+
+        mdf = pd.DataFrame()
+        cl = Crawler(self, logger)
+        df = cl.job_start(1)
+        mdf = pd.concat([mdf, df], ignore_index=True)
+        df = cl.job_start(2)
+        mdf = pd.concat([mdf, df], ignore_index=True)
+        df = cl.job_start(3)
+        mdf = pd.concat([mdf, df], ignore_index=True)
+
+        mdf.to_excel(self.dbfile + "_all_" + datetime.today().strftime("%Y%m%d") + ".xlsx", index=False)
 
     # 함수 파트 : 시그널 이벤트 ##########################################################################
 

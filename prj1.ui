@@ -26,7 +26,7 @@
     <property name="title">
      <string>설정</string>
     </property>
-    <widget class="QPushButton" name="btnLogin">
+    <widget class="QPushButton" name="btnTotal">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -36,10 +36,10 @@
       </rect>
      </property>
      <property name="text">
-      <string>로그인</string>
+      <string>전체</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="btnStart">
+    <widget class="QPushButton" name="btnApt">
      <property name="geometry">
       <rect>
        <x>120</x>
@@ -49,10 +49,10 @@
       </rect>
      </property>
      <property name="text">
-      <string>거래시작</string>
+      <string>아파트</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="btnStop">
+    <widget class="QPushButton" name="btnSangaEtc">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -62,10 +62,10 @@
       </rect>
      </property>
      <property name="text">
-      <string>거래중지</string>
+      <string>상가토지기타</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="btnReStart">
+    <widget class="QPushButton" name="btnOfficetel">
      <property name="geometry">
       <rect>
        <x>120</x>
@@ -75,10 +75,10 @@
       </rect>
      </property>
      <property name="text">
-      <string>재시작</string>
+      <string>오피스텔</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="btnSysTrading">
+    <widget class="QPushButton" name="btnProcessAll">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -88,7 +88,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>시스템 트레이딩</string>
+      <string>전체 크롤링</string>
      </property>
     </widget>
    </widget>
@@ -171,6 +171,19 @@
        <width>131</width>
        <height>21</height>
       </rect>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btnTest">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>106</y>
+       <width>93</width>
+       <height>28</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>테스트버튼</string>
      </property>
     </widget>
    </widget>
