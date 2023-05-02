@@ -1,6 +1,3 @@
-def test_function(parent, logger, *args,**kwargs):
-    logger.debug("bsFunc(test_function) start...")
-    pass
 
 def change_amt_format(data, percent):  # 금액을 천단위 콤마(",")를 추가하여 반환하는 함수
     is_minus = False  # 마이너스 표기를 거짓으로 지정

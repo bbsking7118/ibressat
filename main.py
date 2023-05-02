@@ -12,7 +12,7 @@ import pandas as pd
 # import stocklab.kiwoom.systr as systr
 from db.db_handler import Sqlite3DBHandler
 from userFunc.crawler import Crawler
-from userFunc.bsFunc import test_function
+from userFunc.tester import tester
 
 sys.path.append(("D:\work_east\c_study\project\python\PyGUI"))
 form_class = uic.loadUiType("prj1.ui")[0]  # ui 파일을 로드하여 form_class 생성
@@ -90,7 +90,7 @@ class MyWindow(QMainWindow, form_class):  # MyWindow 클래스 QMainWindow, form
     # 함수 파트 : 이벤트 ##########################################################################
     def btnTestClicked(self):
         logger.debug("btnTestClicked Start ...")  # debug 레벨 로그를 남김
-        test_function(self,logger)
+        tester(self,logger)
 
     def btnTotalClicked(self):
         logger.debug("btnTotalClicked Start ...")  # debug 레벨 로그를 남김
@@ -137,19 +137,19 @@ class MyWindow(QMainWindow, form_class):  # MyWindow 클래스 QMainWindow, form
         # index, name = conditionName.split('^')
         # QMessageBox.about(self, "message", "계좌번호를 선택해주세요.")  # 계좌번호가 없다면 안내 얼럿 노출
         self.pteLog.clear()
-        df = Crawler(self,logger).job_start(1)
+        df = Crawler(self,logger).job_start_full(1)
         df.to_excel(self.dbfile+"_apt_"+datetime.today().strftime("%Y%m%d")+".xlsx")
 
     def btnOfficetelClicked(self):
         logger.debug("btnOffecetelClicked Start ...")  # debug 레벨 로그를 남김
         self.pteLog.clear()
-        df = Crawler(self,logger).job_start(2)
+        df = Crawler(self,logger).job_start_full(2)
         df.to_excel(self.dbfile+"_officetel_"+datetime.today().strftime("%Y%m%d")+".xlsx")
 
     def btnSangaEtcClicked(self):
         logger.debug("btnSangaEtcClicked Start ...")  # debug 레벨 로그를 남김
         self.pteLog.clear()
-        df = Crawler(self, logger).job_start(3)
+        df = Crawler(self, logger).job_start_full(3)
         df.to_excel(self.dbfile + "_sangaetc_" + datetime.today().strftime("%Y%m%d") + ".xlsx")
 
     def btnProcessAllClicked(self):
