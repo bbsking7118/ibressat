@@ -126,7 +126,8 @@ class Crawler:
         return : df
         """
         driver = self.set_chrome_driver()
-        df = pd.DataFrame(columns=['제목', '매전월', '금액', '종류', '타입/층/향', '설명', '부동산', '등록일'])
+        # df = pd.DataFrame(columns=['제목', '매전월', '금액', '종류', '타입/층/향', '설명', '부동산', '등록일'])
+        df = pd.DataFrame(columns=['제목', '매전월', '금액', '월세', '전환가', '종류', '타입/층/향', '설명', '부동산', '등록일'])
         ###########################################################################################################
         scroll_time = 3
         if type == 1:
@@ -204,7 +205,42 @@ class Crawler:
                 db = []
                 db.append(title.text.strip())
                 db.append(types[cnt].text.strip())
-                db.append(prices[cnt].text.strip())
+
+                price = ["0", "0"]
+                ldatas = prices[cnt].text.strip().replace(" ", "").replace(",", "").split("/")
+                # print(ldatas)
+                if len(ldatas) != 2:
+                    price[0] = ldatas[0]
+                    price[1] = "0"
+                else:
+                    price[0] = ldatas[0]
+                    price[1] = ldatas[1]
+                # print("price1:{}, price2:{}".format(price[0], price[1]))
+                ldatas = price[0].split("억")
+                if len(ldatas) == 2:
+                    if ldatas[1] == "":
+                        price[0] = ldatas[0] + "0000"
+                    else:
+                        price[0] = ldatas[0] + ldatas[1]
+                else:
+                    price[0] = ldatas[0]
+                print("price1:{}, price2:{}".format(price[0], price[1]))
+                isdigit = True
+                if price[0].isdigit():
+                    db.append(int(price[0]))
+                else:
+                    db.append(price[0])
+                    isdigit = False
+                if price[1].isdigit():
+                    db.append(int(price[1]))
+                else:
+                    db.append(price[1])
+                    isdigit = False
+                if isdigit:
+                    db.append(int(price[1]) * 100 + int(price[0]))
+                else:
+                    db.append("None")
+
                 db.append(types1[cnt].text.strip())
                 db.append(specs[cnt * 2].text.strip())
                 db.append(specs[cnt * 2 + 1].text.strip())

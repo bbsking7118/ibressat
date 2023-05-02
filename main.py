@@ -90,6 +90,8 @@ class MyWindow(QMainWindow, form_class):  # MyWindow 클래스 QMainWindow, form
     # 함수 파트 : 이벤트 ##########################################################################
     def btnTestClicked(self):
         logger.debug("btnTestClicked Start ...")  # debug 레벨 로그를 남김
+        arg =[]
+        karg = {}
         tester(self,logger)
 
     def btnTotalClicked(self):
