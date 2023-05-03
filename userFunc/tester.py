@@ -1,5 +1,6 @@
 import os, re
 from datetime import date, datetime, timedelta
+from dateutil.parser import parse
 from time import sleep
 import pandas as pd
 import pyautogui
@@ -19,54 +20,42 @@ def tester(pt, logger, *args,**kwargs):
         mdf = pd.concat([mdf, df], ignore_index=True)
     else :
         logger.error("file({}) not exist !!! ...".format(file))
-
     print(mdf)
+
+
 def localtester():
-    prices = ["1억 8,000", "2억", "3억 2000/100", "1,000/85","","이상데이타"]
-    print(prices)
+    file = "c:/temp/dbfile" + "_apt_" + datetime.today().strftime("%Y%m%d") + ".xlsx"
+    mdf = pd.DataFrame()
+    if os.path.exists(file):
+        print("file({}) exist ...".format(file))
+        df = pd.read_excel(file)
+        mdf = pd.concat([mdf, df], ignore_index=True)
+    else:
+        print("file({}) not exist !!! ...".format(file))
+    # print(mdf)
 
-    for item in prices:
-        # price = item.replace(" ","").replace(",","").replace("억","").split("/")
-        # print("size:{} price:{}".format(len(price), price))
-        # if len(price) == 1:
-        #     price.append("0")
-        # print("price1:{}, price2:{}".format(price[0], price[1]))
-        price = ["0","0"]
-        ldatas = item.replace(" ", "").replace(",", "").split("/")
-        # print(ldatas)
-        if len(ldatas) != 2:
-            price[0] = ldatas[0]
-            price[1] = "0"
-        else:
-            price[0] = ldatas[0]
-            price[1] = ldatas[1]
-        # print("price1:{}, price2:{}".format(price[0], price[1]))
-
-        ldatas = price[0].split("억")
-        if len(ldatas) == 2:
-            if ldatas[1] == "":
-                price[0] = ldatas[0]+"0000"
-            else:
-                price[0] = ldatas[0] + ldatas[1]
-        else:
-            price[0] = ldatas[0]
-        print("price1:{}, price2:{}".format(price[0], price[1]))
-
-    # def test1():
-    #     data = ["1억 8,000", "2억", "3억 2000", "1,000"]
-    #     result = []
+    df = mdf[:100]
+    for i in range(df["등록일"].size):
+        sdates = df.iloc[i]["등록일"][:-1].split(".")
+        rdata = date(int("20" + sdates[0]), int(sdates[1]), int(sdates[2]))
+        if (date.today() - rdata)>timedelta(days=20):
+            print("i:{} val:{}".format(i,rdata))
+    #     # print(datetime.date(df.iloc[i]["등록일"][:-1]))
     #
-    #     for d in data:
-    #         d = d.replace(",", "")  # remove comma
-    #         unit = 1  # default unit is 1 (for 1 digit)
-    #         if "억" in d:
-    #             unit = 100000000  # update unit for billion
-    #         elif "만" in d:
-    #             unit = 10000  # update unit for ten thousand
-    #         num = int("".join(filter(str.isdigit, d)))  # extract digits
-    #         result.append(str(num * unit))
-    #
-    #     print(result)
+    # sdate = "23.04.05."
+    # sdates = [ int(x) for x in sdate[:-1].split(".") ]
+    # sdates = sdate[:-1].split(".")
+    # rdata = date(int("20"+sdates[0]),int(sdates[1]),int(sdates[2]))
+    # today = date.today()
+    # # rdata = date(2023,4,29)
+    # ttime = timedelta(days=20)
+    # ndate = today - rdata
+    # print(today)
+    # print(rdata)
+    # print(today-rdata)
+    # print(ndate)
+
+
 
 
 if __name__ == "__main__":

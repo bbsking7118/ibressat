@@ -160,10 +160,10 @@
       </rect>
      </property>
      <property name="text">
-      <string>투입금</string>
+      <string>텔레그램</string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lePrice">
+    <widget class="QLineEdit" name="leTelMsg">
      <property name="geometry">
       <rect>
        <x>80</x>

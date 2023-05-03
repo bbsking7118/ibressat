@@ -1,4 +1,15 @@
 # Byte-compiled / optimized / DLL files
+# my def.
+analysys/
+config/
+db/
+log/
+ref/
+stocklab/
+tests/
+.idea/
+
+#########################################################
 __pycache__/
 *.py[cod]
 *$py.class
@@ -139,14 +150,6 @@ _media/
 .env.prod
 .env.prod.db
 
-# my def.
-analysys/
-config/
-db/
-log/
-ref/
-stocklab/
-tests/
-.idea/
+
 
 

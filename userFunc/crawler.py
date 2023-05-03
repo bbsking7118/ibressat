@@ -8,8 +8,12 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import pyautogui
 
+import telegram
+import asyncio
+
+import configparser
 from time import sleep
-import datetime
+from datetime import date,datetime, timedelta
 import os, re
 import json
 
@@ -19,6 +23,10 @@ class Crawler:
     def __init__(self,parent,logger):
         self.parent = parent
         self.logger = logger
+
+        config = configparser.ConfigParser()
+        config.read('config/secret.ini')
+        self.BOT_TOKEN = config['TGRAM']['BOT_TOKEN']
 
     def set_chrome_driver(self):
         chrome_options = webdriver.ChromeOptions()
@@ -50,13 +58,13 @@ class Crawler:
             if type == 3 :
                 iframe = driver.find_element(By.CSS_SELECTOR, 'div.list_contents')
                 scroll_origin = ScrollOrigin.from_element(iframe)
-                start = datetime.datetime.now()
-                end = start + datetime.timedelta(seconds=10)
+                start = datetime.now()
+                end = start + timedelta(seconds=10)
                 while True:
                     ActionChains(driver) \
                         .scroll_from_origin(scroll_origin, 0, 10000) \
                         .perform()
-                    if datetime.datetime.now() > end:
+                    if datetime.now() > end:
                         break
             else:
                 total_chkbox = driver.find_elements(By.CSS_SELECTOR, 'button.list_filter_btn')
@@ -128,7 +136,9 @@ class Crawler:
         driver = self.set_chrome_driver()
         # df = pd.DataFrame(columns=['제목', '매전월', '금액', '종류', '타입/층/향', '설명', '부동산', '등록일'])
         df = pd.DataFrame(columns=['제목', '매전월', '금액', '월세', '전환가', '종류', '타입/층/향', '설명', '부동산', '등록일'])
+        df_new = pd.DataFrame(columns=['제목', '매전월', '금액', '월세', '전환가', '종류', '타입/층/향', '설명', '부동산', '등록일'])
         ###########################################################################################################
+        today = date.today()  # 230503
         scroll_time = 3
         if type == 1:
             items = apts
@@ -138,7 +148,9 @@ class Crawler:
             items = sangaetcs
             scroll_time = 10
 
+        dbs = []
         cnt1 = 0
+        cnt2 = 0
         for item in items:
             url = items[item]['http']
             driver.get(url)
@@ -169,14 +181,14 @@ class Crawler:
             #######################################################################################
             iframe = driver.find_element(By.CSS_SELECTOR, 'div.item_area')
             scroll_origin = ScrollOrigin.from_element(iframe)
-            start = datetime.datetime.now()
-            end = start + datetime.timedelta(seconds=5)
+            start = datetime.now()
+            end = start + timedelta(seconds=scroll_time)
             scroll_length = 10000
             while True:
                 ActionChains(driver) \
                     .scroll_from_origin(scroll_origin, 0, scroll_length) \
                     .perform()
-                if datetime.datetime.now() > end:
+                if datetime.now() > end:
                     break
                 else:
                     scroll_length += 10000
@@ -198,7 +210,6 @@ class Crawler:
             agents = driver.find_elements(By.CSS_SELECTOR, 'span.agent_info')
             rdates = driver.find_elements(By.CSS_SELECTOR, 'em.data')
 
-            dbs = []
             cnt = 0
 
             for title in titles:
@@ -227,17 +238,17 @@ class Crawler:
                 print("price1:{}, price2:{}".format(price[0], price[1]))
                 isdigit = True
                 if price[0].isdigit():
-                    db.append(int(price[0]))
+                    db.append(price[0])
                 else:
                     db.append(price[0])
                     isdigit = False
                 if price[1].isdigit():
-                    db.append(int(price[1]))
+                    db.append(price[1])
                 else:
                     db.append(price[1])
                     isdigit = False
                 if isdigit:
-                    db.append(int(price[1]) * 100 + int(price[0]))
+                    db.append(str(int(price[1]) * 100 + int(price[0])))
                 else:
                     db.append("None")
 
@@ -245,8 +256,20 @@ class Crawler:
                 db.append(specs[cnt * 2].text.strip())
                 db.append(specs[cnt * 2 + 1].text.strip())
                 db.append(agents[cnt * 2 + 1].text.strip())
-                db.append(rdates[cnt].text.strip())
-                dbs.append(db)
+                # db.append(rdates[cnt].text.strip())
+                # 230503 kbs #####################################
+                sdates = rdates[cnt].text.strip()[:-1].split('.')
+                rdate = date(int("20" + sdates[0]), int(sdates[1]), int(sdates[2]))
+                print(today, rdate)
+                db.append(str(rdate))
+                if today == rdate:
+                    msg = "\n".join(db)
+                    print("오늘 == 등록일 \n {}".format(msg))
+                    # self.telegram_msg(msg)
+                    dbs.append(msg)
+                    cnt2 += 1
+                ##################################################
+                # dbs.append(db)
 
                 for cc in dbs:
                     self.parent.pteLog.appendPlainText(str(cc))
@@ -254,5 +277,18 @@ class Crawler:
                 df.loc[cnt1] = db
                 cnt += 1
                 cnt1 += 1
+
+        msg = "\n%%%%%\n".join(dbs)
+        # print("오늘 == 등록일 \n {}".format(msg))
+        self.telegram_msg(msg)
+
         return df
+
+    async def botAsynMain(self,msg):
+        bot = telegram.Bot(token=self.BOT_TOKEN)
+        await bot.send_message(chat_id=-1001859218840, text=msg)
+    def telegram_msg(self,msg):
+        # self.logger.debug("telegram_msg : {}".format(msg))
+        asyncio.run(self.botAsynMain('{} {}'.format("새로운물건", msg)))
+        pass
     ###################################################################################################
