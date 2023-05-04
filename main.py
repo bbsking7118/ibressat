@@ -112,7 +112,7 @@ class MyWindow(QMainWindow, form_class):  # MyWindow 클래스 QMainWindow, form
         if os.path.exists(file):
             logger.debug("file(apt) exist ...")
             df = pd.read_excel(file)
-            self.send_telegrammsg(df)
+            # self.send_telegrammsg(df)
             mdf = pd.concat([mdf, df], ignore_index=True)
             isUpdated = True
             # df.to_excel(self.dbfile + "_all_" + datetime.today().strftime("%Y%m%d") + ".xlsx", index = True)
@@ -120,7 +120,7 @@ class MyWindow(QMainWindow, form_class):  # MyWindow 클래스 QMainWindow, form
         if os.path.exists(file):
             logger.debug("file(officetel) exist ...")
             df = pd.read_excel(file)
-            self.send_telegrammsg(df)
+            # self.send_telegrammsg(df)
             mdf = pd.concat([mdf, df], ignore_index=True)
             # print(mdf)
 
@@ -130,20 +130,20 @@ class MyWindow(QMainWindow, form_class):  # MyWindow 클래스 QMainWindow, form
         if os.path.exists(file):
             logger.debug("file(sangaetc) exist ...")
             df = pd.read_excel(file)
-            self.send_telegrammsg(df)
+            # self.send_telegrammsg(df)
             mdf = pd.concat([mdf, df], ignore_index=True)
             isUpdated = True
 
         if isUpdated == True:
             mdf.to_excel(self.dbfile + "_all_" + datetime.today().strftime("%Y%m%d") + ".xlsx", index=False)
-            today = datetime.today()
-            diffday = timedelta(days=2)
-            msges = []
-            for i in range(mdf.shape[0] - 1):
-                rday = datetime.strptime(mdf.iloc[i]["등록일"], "%Y-%m-%d")
-                if (today - rday) < diffday:
-                    msg = "\n".join(str(x) for x in list(mdf.iloc[i]))
-                    msges.append(msg)
+            # today = datetime.today()
+            # diffday = timedelta(days=2)
+            # msges = []
+            # for i in range(mdf.shape[0] - 1):
+            #     rday = datetime.strptime(mdf.iloc[i]["등록일"], "%Y-%m-%d")
+            #     if (today - rday) < diffday:
+            #         msg = "\n".join(str(x) for x in list(mdf.iloc[i]))
+            #         msges.append(msg)
 
     def send_telegrammsg(self,df):
         today = datetime.today()
